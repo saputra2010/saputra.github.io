@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tic Tac Toe</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin-top: 50px;
+        }
+        .board {
+            display: grid;
+            grid-template-columns: repeat(3, 100px);
+            grid-gap: 5px;
+            justify-content: center;
+        }
+        .cell {
+            width: 100px;
+            height: 100px;
+            background-color: #00f500;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border: 2px solid #1f22f1;
+        }
+        .cell.taken {
+            pointer-events: none;
+        }
+        .message {
+            margin-top: 20px;
+            font-size: 20px;
+            font-weight: bold;
+        }
+        .reset {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .mode-select {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Tic Tac Toe</h1>
+    <div class="mode-select">
+        <button id="singlePlayer">Single Player</button>
+        <button id="multiPlayer">Multiplayer</button>
+    </div>
+    <div class="board" id="board"></div>
+    <div class="message" id="message"></div>
+    <button class="reset" id="reset">Reset Game</button>
+
+    <script>
+        const board = document.getElementById('board');
+        const message = document.getElementById('message');
+        const resetButton = document.getElementById('reset');
+        const singlePlayerButton = document.getElementById('singlePlayer');
+        const multiPlayerButton = document.getElementById('multiPlayer');
+
+        let currentPlayer = 'X';
+        let gameActive = true;
+        let gameState = Array(9).fill(null);
+        let singlePlayerMode = false;
+
+        const winningCombinations = [
+            [0, 1, 2], [3, 4, 5], [6, 7, 8],
+            [0, 3, 6], [1, 4, 7], [2, 5, 8],
+            [0, 4, 8], [2, 4, 6]
+        ];
+
+        function checkWinner() {
+            for (const combination of winningCombinations) {
+                const [a, b, c] = combination;
+                if (gameState[a] && gameState[a] === gameState[b] && gameState[a] === gameState[c]) {
+                    return gameState[a];
+                }
+            }
+            return gameState.includes(null) ? null : 'Tie';
+        }
+
+        function handleCellClick(event) {
+            const cell = event.target;
+            const cellIndex = parseInt(cell.getAttribute('data-index'));
+
+            if (!gameActive || gameState[cellIndex]) return;
+
+            gameState[cellIndex] = currentPlayer;
+            cell.textContent = currentPlayer;
+            cell.classList.add('taken');
+
+            const winner = checkWinner();
+            if (winner) {
+                gameActive = false;
+                message.textContent = winner === 'Tie' ? "It's a tie!" : `Player ${winner} wins!`;
+                return;
+            }
+
+            currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+            message.textContent = `Player ${currentPlayer}'s turn`;
+
+            if (singlePlayerMode && currentPlayer === 'O') {
+                computerMove();
+            }
+        }
+
+        function computerMove() {
+            if (!gameActive) return;
+
+            const emptyCells = gameState.map((val, idx) => val === null ? idx : null).filter(idx => idx !== null);
+            const randomIndex = emptyCells[Math.floor(Math.random() * emptyCells.length)];
+
+            gameState[randomIndex] = 'O';
+            const cell = document.querySelector(`[data-index='${randomIndex}']`);
+            cell.textContent = 'O';
+            cell.classList.add('taken');
+
+            const winner = checkWinner();
+            if (winner) {
+                gameActive = false;
+                message.textContent = winner === 'Tie' ? "It's a tie!" : `Player ${winner} wins!`;
+                return;
+            }
+
+            currentPlayer = 'X';
+            message.textContent = `Player ${currentPlayer}'s turn`;
+        }
+
+        function resetGame() {
+            gameState.fill(null);
+            gameActive = true;
+            currentPlayer = 'X';
+            message.textContent = `Player ${currentPlayer}'s turn`;
+            board.innerHTML = '';
+            createBoard();
+        }
+
+        function createBoard() {
+            for (let i = 0; i < 9; i++) {
+                const cell = document.createElement('div');
+                cell.classList.add('cell');
+                cell.setAttribute('data-index', i);
+                cell.addEventListener('click', handleCellClick);
+                board.appendChild(cell);
+            }
+        }
+
+        singlePlayerButton.addEventListener('click', () => {
+            singlePlayerMode = true;
+            resetGame();
+            message.textContent = "Single Player Mode: Player X's turn";
+        });
+
+        multiPlayerButton.addEventListener('click', () => {
+            singlePlayerMode = false;
+            resetGame();
+            message.textContent = "Multiplayer Mode: Player X's turn";
+        });
+
+        resetButton.addEventListener('click', resetGame);
+        resetGame();
+    </script>
+</body>
+</html>
+<a href></a>
